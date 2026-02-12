@@ -81,32 +81,38 @@ class MemberController extends Controller
     /**
      * Update the specified member in storage.
      */
-    public function update(Request $request, Member $member)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'plan_id' => 'required|exists:plans,id',
-            'start_date' => 'required|date',
-        ]);
+   public function update(Request $request, Member $member)
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'phone' => 'required|string|max:20',
+        'plan_id' => 'required|exists:plans,id',
+        'start_date' => 'required|date',
+    ]);
 
-        $plan = Plan::findOrFail($request->plan_id);
-        
-        $startDate = Carbon::parse($request->start_date);
-        $endDate = $startDate->copy()->addDays($plan->duration_days);
-        $status = $endDate->isPast() ? 'expired' : 'active';
+    // 1. Get the Plan details to know how many days to add
+    $plan = \App\Models\Plan::find($request->plan_id);
 
-        $member->update([
-            'name' => $request->name,
-            'phone' => $request->phone,
-            'plan_id' => $plan->id,
-            'price' => $plan->price, // Update price if plan changes
-            'start_date' => $startDate,
-            'end_date' => $endDate,
-            'status' => $status,
-        ]);
+    // 2. Calculate the new end date based on the selected start date
+    $startDate = \Carbon\Carbon::parse($request->start_date);
+    $endDate = $startDate->copy()->addDays($plan->duration_days);
 
-        return redirect()->route('members.index')->with('success', 'Member updated successfully!');
-    }
+    // 3. Determine status: if end date is in the future, it's active
+    $status = $endDate->isPast() ? 'expired' : 'active';
+
+    // 4. Update the member
+    $member->update([
+        'name' => $request->name,
+        'phone' => $request->phone,
+        'plan_id' => $request->plan_id,
+        'start_date' => $startDate,
+        'end_date' => $endDate,
+        'status' => $status,
+        'price' => $plan->price, // Update price in case plan changed
+    ]);
+
+    return redirect()->route('members.index')->with('success', 'Member renewed and updated successfully!');
+}
 
     /**
      * Remove the specified member from storage.
