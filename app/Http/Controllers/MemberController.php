@@ -81,8 +81,9 @@ class MemberController extends Controller
     /**
      * Update the specified member in storage.
      */
-   public function update(Request $request, Member $member)
+  public function update(Request $request, Member $member)
 {
+    // 1. Validate the input
     $request->validate([
         'name' => 'required|string|max:255',
         'phone' => 'required|string|max:20',
@@ -90,17 +91,17 @@ class MemberController extends Controller
         'start_date' => 'required|date',
     ]);
 
-    // 1. Get the Plan details to know how many days to add
-    $plan = \App\Models\Plan::find($request->plan_id);
+    // 2. Get the Plan details to calculate the new duration
+    $plan = \App\Models\Plan::findOrFail($request->plan_id);
 
-    // 2. Calculate the new end date based on the selected start date
+    // 3. Calculate new End Date
     $startDate = \Carbon\Carbon::parse($request->start_date);
     $endDate = $startDate->copy()->addDays($plan->duration_days);
 
-    // 3. Determine status: if end date is in the future, it's active
+    // 4. Auto-determine status (If end date is today or future, it's active)
     $status = $endDate->isPast() ? 'expired' : 'active';
 
-    // 4. Update the member
+    // 5. Save everything to the database
     $member->update([
         'name' => $request->name,
         'phone' => $request->phone,
@@ -108,10 +109,11 @@ class MemberController extends Controller
         'start_date' => $startDate,
         'end_date' => $endDate,
         'status' => $status,
-        'price' => $plan->price, // Update price in case plan changed
+        'price' => $plan->price, // In case the plan price changed
     ]);
 
-    return redirect()->route('members.index')->with('success', 'Member renewed and updated successfully!');
+    // 6. REDIRECT back to the members list (This solves your issue)
+    return redirect()->route('members.index')->with('success', 'Member updated and subscription renewed!');
 }
 
     /**
