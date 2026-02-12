@@ -25,6 +25,20 @@
     <x-nav-link :href="route('plans.index')" :active="request()->routeIs('plans.*')">
     {{ __('Plans') }}
 </x-nav-link>
+
+
+
+<x-nav-link :href="route('coaches.index')" :active="request()->routeIs('coaches.*')">
+        {{ __('Coaches') }}
+    </x-nav-link>
+
+
+
+    <x-nav-link :href="route('expenses.index')" :active="request()->routeIs('expenses.*')">
+    {{ __('Expenses') }}
+</x-nav-link>
+
+
 </div>
             </div>
 
@@ -80,7 +94,48 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+
+
+
+
+
+
+<x-nav-link :href="route('members.index')" :active="request()->routeIs('members.*')">
+        {{ __('Members') }}
+    </x-nav-link>
+
+
+
+    <x-nav-link :href="route('plans.index')" :active="request()->routeIs('plans.*')">
+    {{ __('Plans') }}
+</x-nav-link>
+
+
+
+<x-nav-link :href="route('coaches.index')" :active="request()->routeIs('coaches.*')">
+        {{ __('Coaches') }}
+    </x-nav-link>
+
+
+
+
+
+
+
+
+
+
+
+
         </div>
+
+
+
+
+
+
+
+
 
         <!-- Responsive Settings Options -->
         <div class="pt-4 pb-1 border-t border-gray-200">

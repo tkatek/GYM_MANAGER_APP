@@ -1,71 +1,92 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Dashboard') }}
+            {{ __('Gym Management Dashboard') }}
         </h2>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
-            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-indigo-500">
-                    <div class="text-gray-500 text-sm font-medium uppercase">Total Members</div>
-                    <div class="mt-2 text-3xl font-bold text-gray-900">{{ $totalMembers }}</div>
-                </div>
-
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-green-500">
-                    <div class="text-gray-500 text-sm font-medium uppercase">Active Members</div>
-                    <div class="mt-2 text-3xl font-bold text-green-600">{{ $activeMembers }}</div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-blue-500">
+                    <div class="text-gray-500 text-sm font-medium uppercase tracking-wider">Revenue (This Month)</div>
+                    <div class="mt-2 text-3xl font-black text-blue-600">${{ number_format($currentMonthlyRevenue, 2) }}</div>
                 </div>
 
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-red-500">
-                    <div class="text-gray-500 text-sm font-medium uppercase">Expired Members</div>
-                    <div class="mt-2 text-3xl font-bold text-red-600">{{ $expiredMembers }}</div>
+                    <div class="text-gray-500 text-sm font-medium uppercase tracking-wider">Expenses (This Month)</div>
+                    <div class="mt-2 text-3xl font-black text-red-600">${{ number_format($currentMonthlyExpenses, 2) }}</div>
                 </div>
 
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-purple-500">
-                    <div class="text-gray-500 text-sm font-medium uppercase">Total Plans</div>
-                    <div class="mt-2 text-3xl font-bold text-gray-900">{{ $totalPlans }}</div>
-                </div>
-
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-yellow-500">
-                    <div class="text-gray-500 text-sm font-medium uppercase">Total Revenue</div>
-                    <div class="mt-2 text-3xl font-bold text-gray-900">${{ number_format($monthlyRevenue, 2) }}</div>
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 {{ $netProfit >= 0 ? 'border-green-500' : 'border-red-700' }}">
+                    <div class="text-gray-500 text-sm font-medium uppercase tracking-wider">Net Profit</div>
+                    <div class="mt-2 text-3xl font-black {{ $netProfit >= 0 ? 'text-green-600' : 'text-red-700' }}">
+                        ${{ number_format($netProfit, 2) }}
+                        <span class="text-lg ml-1">{{ $netProfit >= 0 ? '↗️' : '↘️' }}</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-4 border-l-4 border-indigo-400">
+                    <div class="text-gray-400 text-xs font-bold uppercase">Total Members</div>
+                    <div class="mt-1 text-2xl font-bold text-gray-800">{{ $totalMembers }}</div>
+                </div>
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-4 border-l-4 border-green-400">
+                    <div class="text-gray-400 text-xs font-bold uppercase">Active</div>
+                    <div class="mt-1 text-2xl font-bold text-green-500">{{ $activeMembers }}</div>
+                </div>
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-4 border-l-4 border-pink-400">
+                    <div class="text-gray-400 text-xs font-bold uppercase">Coaches</div>
+                    <div class="mt-1 text-2xl font-bold text-gray-800">{{ $totalCoaches }}</div>
+                </div>
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-4 border-l-4 border-purple-400">
+                    <div class="text-gray-400 text-xs font-bold uppercase">Plans</div>
+                    <div class="mt-1 text-2xl font-bold text-gray-800">{{ $totalPlans }}</div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-8">
+                <h3 class="text-lg font-bold mb-4 text-gray-800">Financial Performance (Last 3 Months)</h3>
+                <div class="h-64">
+                    <canvas id="gymFinanceChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-100">
                 <div class="p-6 text-gray-900">
-                    <h3 class="text-lg font-bold mb-4 text-gray-800">⚠️ Expiring Soon (Next 7 Days)</h3>
+                    <h3 class="text-lg font-bold mb-4 text-gray-800 flex items-center">
+                        <span class="mr-2">⚠️</span> Expiring Soon (Next 7 Days)
+                    </h3>
                     
                     @if($expiringSoon->isEmpty())
-                        <p class="text-gray-500">No memberships expiring in the next 7 days.</p>
+                        <p class="text-gray-500 italic">Everything is up to date. No memberships expiring this week.</p>
                     @else
                         <div class="overflow-x-auto">
-                            <table class="min-w-full text-left text-sm font-light">
-                                <thead class="border-b font-medium bg-gray-50">
+                            <table class="min-w-full text-left text-sm">
+                                <thead class="bg-gray-50 font-bold uppercase text-gray-600">
                                     <tr>
-                                        <th scope="col" class="px-6 py-4">Name</th>
-                                        <th scope="col" class="px-6 py-4">Plan</th>
-                                        <th scope="col" class="px-6 py-4">End Date</th>
-                                        <th scope="col" class="px-6 py-4">Action</th>
+                                        <th class="px-6 py-3">Member Name</th>
+                                        <th class="px-6 py-3">Plan</th>
+                                        <th class="px-6 py-3 text-center">End Date</th>
+                                        <th class="px-6 py-3 text-right">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody class="divide-y">
                                     @foreach($expiringSoon as $member)
-                                    <tr class="border-b hover:bg-gray-50">
-                                        <td class="whitespace-nowrap px-6 py-4 font-medium">{{ $member->name }}</td>
-                                        <td class="whitespace-nowrap px-6 py-4">
-                                            <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded">
+                                    <tr class="hover:bg-gray-50 transition">
+                                        <td class="px-6 py-4 font-semibold text-gray-900">{{ $member->name }}</td>
+                                        <td class="px-6 py-4">
+                                            <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded">
                                                 {{ $member->plan ? $member->plan->name : 'No Plan' }}
                                             </span>
                                         </td>
-                                        <td class="whitespace-nowrap px-6 py-4 text-red-600 font-bold">
+                                        <td class="px-6 py-4 text-center text-red-600 font-bold">
                                             {{ \Carbon\Carbon::parse($member->end_date)->format('d M Y') }}
                                         </td>
-                                        <td class="whitespace-nowrap px-6 py-4">
-                                            <a href="{{ route('members.index') }}" class="text-indigo-600 hover:text-indigo-900 font-semibold">View</a>
+                                        <td class="px-6 py-4 text-right">
+                                            <a href="{{ route('members.index') }}" class="text-indigo-600 hover:underline font-bold">Manage</a>
                                         </td>
                                     </tr>
                                     @endforeach
@@ -78,4 +99,42 @@
 
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('gymFinanceChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {!! json_encode($chartData['labels']) !!},
+                datasets: [
+                    {
+                        label: 'Revenue',
+                        data: {!! json_encode($chartData['revenue']) !!},
+                        backgroundColor: '#3b82f6', // Indigo-500
+                        borderRadius: 4,
+                    },
+                    {
+                        label: 'Expenses',
+                        data: {!! json_encode($chartData['expenses']) !!},
+                        backgroundColor: '#ef4444', // Red-500
+                        borderRadius: 4,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: true,
+                        ticks: { callback: (value) => '$' + value }
+                    }
+                }
+            }
+        });
+    </script>
 </x-app-layout>
