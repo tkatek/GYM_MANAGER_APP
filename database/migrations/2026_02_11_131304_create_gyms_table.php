@@ -9,17 +9,22 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-  public function up(): void
-{
-    Schema::create('gyms', function (Blueprint $table) {
-        $table->id();
-        $table->string('name');       // Gym Name
-        $table->string('owner_name'); // Owner's full name
-        $table->string('phone')->nullable();
-        $table->string('email')->nullable();
-        $table->timestamps();
-    });
-}
+    public function up(): void
+    {
+        Schema::create('gyms', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');       
+            $table->string('owner_name'); 
+            $table->string('phone')->nullable();
+            $table->string('email')->nullable();
+            
+            // This allows you to "delete" a gym but keep the data 
+            // in the background just in case of mistakes.
+            $table->softDeletes(); 
+            
+            $table->timestamps();
+        });
+    }
 
     /**
      * Reverse the migrations.
