@@ -23,21 +23,39 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     
-                    <form method="GET" action="{{ route('members.index') }}" class="mb-6 flex gap-4">
-                        <div class="flex-grow">
-                            <input type="text" name="search" placeholder="Search by name..." value="{{ request('search') }}" 
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            >
-                        </div>
-                        <button type="submit" class="bg-gray-800 text-white px-6 py-2 rounded-md hover:bg-gray-700 transition">
-                            Search
-                        </button>
-                        @if(request('search'))
-                            <a href="{{ route('members.index') }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 flex items-center transition">
-                                Clear
-                            </a>
-                        @endif
-                    </form>
+                   <form method="GET" action="{{ route('members.index') }}" class="mb-6 flex flex-col md:flex-row gap-4 items-end">
+    
+    <div class="flex-grow w-full">
+        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Search Name</label>
+        <input type="text" name="search" placeholder="Search member name..." value="{{ request('search') }}" 
+            class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+        >
+    </div>
+
+    <div class="w-full md:w-64">
+        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Filter by Subscription</label>
+        <select name="plan_id" onchange="this.form.submit()" 
+            class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-white">
+            <option value="">All Plans (Boxing, Yoga, etc.)</option>
+            @foreach($allPlans as $plan)
+                <option value="{{ $plan->id }}" {{ request('plan_id') == $plan->id ? 'selected' : '' }}>
+                    {{ $plan->name }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+
+    <div class="flex gap-2">
+        <button type="submit" class="bg-gray-800 text-white px-6 py-2 rounded-md hover:bg-gray-700 transition font-bold">
+            Search
+        </button>
+        @if(request('search') || request('plan_id'))
+            <a href="{{ route('members.index') }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 flex items-center transition">
+                Clear
+            </a>
+        @endif
+    </div>
+</form>
 
                     @if($members->isEmpty())
                         <div class="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">

@@ -20,8 +20,23 @@ class MemberController extends Controller
             $query->where('name', 'like', '%' . $request->search . '%');
         }
 
-        $members = $query->latest()->paginate(10);
-        return view('members.index', compact('members'));
+
+// $query = Member::query();
+// $members = $query->paginate(20)->withQueryString();
+
+
+$allPlans = \App\Models\Plan::all();
+$query = Member::query();
+if ($request->filled('plan_id')) {
+        $query->where('plan_id', $request->plan_id);
+    }
+
+$members = $query->paginate(10)->withQueryString();
+
+
+
+       
+        return view('members.index', compact('members', 'allPlans'));
     }
 
     /**
