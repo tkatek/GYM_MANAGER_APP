@@ -33,7 +33,7 @@ class DashboardController extends Controller
 
         $netProfit = $currentMonthlyRevenue - $currentMonthlyExpenses;
 
-        // 3. Chart Data (Logic for the last 3 months)
+        // 3. Finance Chart Data (Bar Chart - Last 3 months)
         $chartData = [
             'labels' => [],
             'revenue' => [],
@@ -44,12 +44,10 @@ class DashboardController extends Controller
             $month = Carbon::now()->subMonths($i);
             $monthLabel = $month->format('M Y');
             
-            // Calculate Revenue for that specific month
             $rev = Member::whereMonth('created_at', $month->month)
                 ->whereYear('created_at', $month->year)
                 ->sum('price');
             
-            // Calculate Expenses for that specific month
             $exp = Expense::whereMonth('date', $month->month)
                 ->whereYear('date', $month->year)
                 ->sum('amount');
@@ -59,7 +57,14 @@ class DashboardController extends Controller
             $chartData['expenses'][] = $exp;
         }
 
-        // 4. Expiring Soon (Next 7 Days)
+        // 4. Plan Popularity Data (Doughnut Chart)
+        $plans = Plan::withCount('members')->get();
+        $planData = [
+            'labels' => $plans->pluck('name'),
+            'counts' => $plans->pluck('members_count'),
+        ];
+
+        // 5. Expiring Soon (Next 7 Days)
         $expiringSoon = Member::with('plan')
             ->whereBetween('end_date', [
                 $now->copy()->startOfDay(), 
@@ -78,6 +83,7 @@ class DashboardController extends Controller
             'currentMonthlyExpenses',
             'netProfit',
             'chartData',
+            'planData', // Sent as a separate variable
             'expiringSoon'
         ));
     }

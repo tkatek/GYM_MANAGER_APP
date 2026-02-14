@@ -12,32 +12,29 @@ class MemberController extends Controller
     /**
      * Display a listing of the members.
      */
-    public function index(Request $request)
-    {
-        $query = Member::with('plan'); // Load plan details efficiently
+ public function index(Request $request)
+{
+    // 1. Fetch all plans for the filter dropdown
+    $allPlans = \App\Models\Plan::all();
 
-        if ($request->has('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
-        }
+    // 2. Start the query and eager load 'plan' to prevent N+1 issues
+    $query = Member::with('plan');
 
+    // 3. Apply Name Search
+    if ($request->filled('search')) {
+        $query->where('name', 'like', '%' . $request->search . '%');
+    }
 
-// $query = Member::query();
-// $members = $query->paginate(20)->withQueryString();
-
-
-$allPlans = \App\Models\Plan::all();
-$query = Member::query();
-if ($request->filled('plan_id')) {
+    // 4. Apply Dynamic Plan Filter
+    if ($request->filled('plan_id')) {
         $query->where('plan_id', $request->plan_id);
     }
 
-$members = $query->paginate(10)->withQueryString();
+    // 5. Paginate and keep the search/filter parameters in the URL links
+    $members = $query->latest()->paginate(10)->withQueryString();
 
-
-
-       
-        return view('members.index', compact('members', 'allPlans'));
-    }
+    return view('members.index', compact('members', 'allPlans'));
+}
 
     /**
      * Show the form for creating a new member.
@@ -139,4 +136,16 @@ $members = $query->paginate(10)->withQueryString();
         $member->delete();
         return redirect()->route('members.index')->with('success', 'Member deleted!');
     }
+
+
+
+
+
+
+
+
+
+
+
+    
 }

@@ -20,6 +20,7 @@ Route::resource('coaches', \App\Http\Controllers\CoachController::class);
     Route::resource('members', MemberController::class);
     Route::resource('plans', \App\Http\Controllers\PlanController::class);
     Route::resource('expenses', ExpenseController::class);
+    Route::post('/members/{member}/renew', [MemberController::class, 'renew'])->name('members.renew');
 });
 
 require __DIR__.'/auth.php';
